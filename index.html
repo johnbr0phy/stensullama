@@ -1,154 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Email Creation Platform</title>
- <style>
- /* Add some basic styling */
- body {
- font-family: Arial, sans-serif;
- }
- .editor {
- width:80%;
- margin:40px auto;
- }
- .sidebar {
- width:20%;
- float: left;
- background-color: #f0f0f0;
- padding:20px;
- }
- .canvas {
- width:80%;
- float: right;
- background-color: #fff;
- padding:20px;
- }
- .brand-book {
- width:20%;
- float: left;
- background-color: #f0f0f0;
- padding:20px;
- }
- .modules {
- width:20%;
- float: left;
- background-color: #f0f0f0;
- padding:20px;
- }
- </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Editor</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #editor {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #toolbar {
+            width: 800px;
+            height: 50px;
+            border: 1px solid #ccc;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #toolbar button {
+            width: 50px;
+            height: 30px;
+            margin: 5px;
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+        }
+        #toolbar button:hover {
+            background-color: #3e8e41;
+        }
+    </style>
 </head>
 <body>
- <div id="root"></div>
- <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
- <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
- <script src="https://unpkg.com/@testing-library/jest-dom@5.16.5/umd/jest-dom.development.js"></script>
- <script>
- // Define the EmailEditor component
- function EmailEditor() {
- const [components, setComponents] = React.useState([]);
- const [canvas, setCanvas] = React.useState([]);
- const [brandBook, setBrandBook] = React.useState({
- colors: [],
- fonts: [],
- logos: [],
- });
- const [modules, setModules] = React.useState({
- text: [],
- image: [],
- button: [],
- });
+    <div id="toolbar">
+        <button id="text-btn">Text</button>
+        <button id="image-btn">Image</button>
+        <button id="button-btn">Button</button>
+    </div>
+    <div id="editor"></div>
 
- const handleDrop = (item) => {
- setComponents((prevComponents) => [...prevComponents, item]);
- };
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Create the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 800 / 600, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.createElement('canvas'),
+            antialias: true
+        });
+        renderer.setSize(800, 600);
+        document.getElementById('editor').appendChild(renderer.domElement);
 
- const handleBrandBookUpdate = (updatedBrandBook) => {
- setBrandBook(updatedBrandBook);
- };
+        // Add some basic 3D objects to the scene
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
 
- const handleModulesUpdate = (updatedModules) => {
- setModules(updatedModules);
- };
+        // Add some event listeners to the toolbar buttons
+        document.getElementById('text-btn').addEventListener('click', () => {
+            // Add text to the scene
+            const textGeometry = new THREE.TextGeometry('Hello, World!', {
+                font: 'Arial',
+                size: 1,
+                height: 0.1,
+                curveSegments: 12
+            });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            scene.add(textMesh);
+        });
 
- return (
- <div className="editor">
- <div className="sidebar">
- <div draggable="true" onDragStart={(e) => e.dataTransfer.setData("text", "text")}>Text</div>
- <div draggable="true" onDragStart={(e) => e.dataTransfer.setData("text", "image")}>Image</div>
- <div draggable="true" onDragStart={(e) => e.dataTransfer.setData("text", "button")}>Button</div>
- </div>
- <div className="canvas"
- onDragOver={(e) => e.preventDefault()}
- onDrop={(e) => {
- handleDrop(e.dataTransfer.getData("text"));
- }}
- >
- {components.map((component, index) => (
- <div key={index}>{component}</div>
- ))}
- </div>
- <div className="brand-book">
- <h2>Brand Book</h2>
- <form onSubmit={(e) => {
- e.preventDefault();
- handleBrandBookUpdate({
- colors: [...brandBook.colors, e.target.color.value],
- fonts: [...brandBook.fonts, e.target.font.value],
- logos: [...brandBook.logos, e.target.logo.value],
- });
- }}>
- <input type="color" name="color" />
- <input type="text" name="font" />
- <input type="file" name="logo" />
- <button type="submit">Add</button>
- </form>
- <ul>
- {brandBook.colors.map((color, index) => (
- <li key={index}>{color}</li>
- ))}
- {brandBook.fonts.map((font, index) => (
- <li key={index}>{font}</li>
- ))}
- {brandBook.logos.map((logo, index) => (
- <li key={index}><img src={logo} alt="Logo" /></li>
- ))}
- </ul>
- </div>
- <div className="modules">
- <h2>Modules</h2>
- <form onSubmit={(e) => {
- e.preventDefault();
- handleModulesUpdate({
- text: [...modules.text, e.target.text.value],
- image: [...modules.image, e.target.image.value],
- button: [...modules.button, e.target.button.value],
- });
- }}>
- <input type="text" name="text" />
- <input type="file" name="image" />
- <input type="text" name="button" />
- <button type="submit">Add</button>
- </form>
- <ul>
- {modules.text.map((text, index) => (
- <li key={index}>{text}</li>
- ))}
- {modules.image.map((image, index) => (
- <li key={index}><img src={image} alt="Image" /></li>
- ))}
- {modules.button.map((button, index) => (
- <li key={index}>{button}</li>
- ))}
- </ul>
- </div>
- </div>
- );
- }
+        document.getElementById('image-btn').addEventListener('click', () => {
+            // Add an image to the scene
+            const imageTexture = new THREE.TextureLoader().load('https://picsum.photos/200/300');
+            const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture });
+            const imageMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), imageMaterial);
+            scene.add(imageMesh);
+        });
 
- // Render the EmailEditor component
- ReactDOM.render(<EmailEditor />, document.getElementById("root"));
- </script>
+        document.getElementById('button-btn').addEventListener('click', () => {
+            // Add a button to the scene
+            const buttonGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const buttonMesh = new THREE.Mesh(buttonGeometry, buttonMaterial);
+            scene.add(buttonMesh);
+        });
+
+        // Animate the scene
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
 </body>
 </html>
+
